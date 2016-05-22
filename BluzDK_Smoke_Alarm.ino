@@ -1,0 +1,105 @@
+// This #include statement was automatically added by the Particle IDE.
+#include "elapsedMillis/elapsedMillis.h"
+
+//this reads the output pin of the smoke sensor every 1 second
+#define SMOKE_READ_INTERVAL 1000
+
+//this defines the frequency of the notifications sent to the user
+#define SMOKE_FIRST_ALARM 10000 //10 seconds
+#define SMOKE_SECOND_ALARM 60000 //1 minute
+#define SMOKE_THIRD_ALARM 300000 //5 minutes
+#define SMOKE_FOURTH_ALARM 600000 //10 minutes
+#define SMOKE_FIFTH_ALARM 900000 //15 minutes
+
+elapsedMillis smoke_timer;
+elapsedMillis smoke_alarm_timer;
+
+int smoke_alarms_array[5]={SMOKE_FIRST_ALARM, SMOKE_SECOND_ALARM, SMOKE_THIRD_ALARM, SMOKE_FOURTH_ALARM, SMOKE_FIFTH_ALARM};
+int smoke_alarm_index = 0;
+bool smoke_detected = false;
+unsigned long smoke_next_alarm = 0;
+
+int SMOKE_SENSOR = D7;
+
+
+void setup() {
+ pinMode(SMOKE_SENSOR, INPUT);
+}
+
+void loop() {
+    //System.sleep(SLEEP_MODE_CPU);
+
+    smoke_check();
+    
+    if (smoke_detected) {
+        smoke_notify_user();
+    }
+}
+
+/*******************************************************************************
+ * Function Name  : smoke_check
+ * Description    : check smoke sensor at SMOKE_READ_INTERVAL, turns on led on D7 and raises alarm if smoke is detected
+ * Return         : 0
+ *******************************************************************************/
+int smoke_check()
+{
+    if (smoke_timer < SMOKE_READ_INTERVAL) {
+        return 0;
+    }
+    
+    //time is up, so reset timer
+    smoke_timer = 0;
+
+    if (digitalRead(SMOKE_SENSOR)) {
+        
+        //if smoke is already detected, no need to do anything, because an alarm will be fired
+        if (smoke_detected){
+            return 0;
+        }
+        
+        smoke_detected = true;
+    
+        //reset alarm timer
+        smoke_alarm_timer = 0;
+
+        //set next alarm
+        smoke_alarm_index = 0;
+        smoke_next_alarm = smoke_alarms_array[0];
+        
+    } else {
+        
+        smoke_detected = false;
+    }
+    return 0;
+}
+
+/*******************************************************************************
+ * Function Name  : smoke_notify_user
+ * Description    : will fire notifications to user at scheduled intervals
+ * Return         : 0
+ *******************************************************************************/
+int smoke_notify_user()
+{
+
+    if (smoke_alarm_timer < smoke_next_alarm) {
+        return 0;
+    }
+
+    
+    //time is up, so reset timer
+    smoke_alarm_timer = 0;
+    
+    //set next alarm or just keep current one if there are no more alarms to set
+    if (smoke_alarm_index < arraySize(smoke_alarms_array)-1) {
+        smoke_alarm_index = smoke_alarm_index + 1;
+        smoke_next_alarm = smoke_alarms_array[smoke_alarm_index];
+    }
+
+    //send an alarm to user (this one goes to the dashboard)
+    Particle.publish("Smoke", "smoke detected!", 60, PRIVATE);
+    
+    //send an alarm to user (this one goes to pushbullet servers)
+    Particle.publish("pushbullet", "smoke detected!", 60, PRIVATE);
+   
+   return 0; 
+}
