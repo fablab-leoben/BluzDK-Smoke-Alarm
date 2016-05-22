@@ -1,6 +1,6 @@
 Copyright 2015 Gustavo Gonnet https://www.hackster.io/gusgonnet/water-detection-system-227b08/
 
-Modified 2016 Thomas Rockenbauer http://fablab-leoben.at
+Modified 2016 Thomas Rockenbauer, rockenbauer.thomas@gmail.com, http://fablab-leoben.at
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
