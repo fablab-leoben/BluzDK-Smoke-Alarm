@@ -44,7 +44,7 @@ void setup() {
 }
 
 void loop() {
-    //System.sleep(SLEEP_MODE_CPU);
+    System.sleep(SLEEP_MODE_CPU);
 
     smoke_check();
     
