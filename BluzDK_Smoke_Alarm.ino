@@ -28,6 +28,8 @@ limitations under the License.
 #define SMOKE_FOURTH_ALARM 600000 //10 minutes
 #define SMOKE_FIFTH_ALARM 900000 //15 minutes
 
+#define SMOKE_NOTIF "SMOKE"
+
 elapsedMillis smoke_timer;
 elapsedMillis smoke_alarm_timer;
 
@@ -41,6 +43,24 @@ int SMOKE_SENSOR = D7;
 
 void setup() {
  pinMode(SMOKE_SENSOR, INPUT);
+ 
+ // set the transmit power to 0dBm, lower values result in longer battery life
+ // value must be one of the following: -30, -20, -16, -12, -8, -4, 0, or 4 dBm
+BLE.setTxPower(-12);
+ 
+ // take control of the LED
+RGB.control(true);
+
+// scales brightness of all three colors, 0-255.
+// the following sets the RGB LED brightness to 25%:
+RGB.brightness(0);
+
+// wait one more second
+delay(1000);
+
+// resume normal operation
+RGB.control(false);
+
 }
 
 void loop() {
@@ -68,7 +88,7 @@ int smoke_check()
     smoke_timer = 0;
 
     if (digitalRead(SMOKE_SENSOR)) {
-        
+
         //if smoke is already detected, no need to do anything, because an alarm will be fired
         if (smoke_detected){
             return 0;
